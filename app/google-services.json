@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "168657439066",
+    "project_id": "test-mad-af0eb",
+    "storage_bucket": "test-mad-af0eb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:168657439066:android:ca43f3110c4ae1dc08cb63",
+        "android_client_info": {
+          "package_name": "nibm.hdse241.test_mad"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDA-KCeukshpvZJYUZey6q_XRRzLpxvo3Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
