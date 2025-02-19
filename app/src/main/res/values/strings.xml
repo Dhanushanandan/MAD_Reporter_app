@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Test_MAD</string>
+
+    <string-array name="news_categories">
+        <item>Politics</item>
+        <item>Sports</item>
+        <item>World</item>
+        <item>Business</item>
+    </string-array>
+
 </resources>

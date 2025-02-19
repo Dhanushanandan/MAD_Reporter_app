@@ -25,6 +25,16 @@
         <activity android:name=".LoginActivity" android:exported="true"></activity>
         <activity android:name=".RegisterActivity" android:exported="true"></activity>
         <activity android:name=".DashboardActivity" android:exported="true"></activity>
+        <activity android:name=".User_profileActivity" android:exported="true"></activity>
+        <activity android:name=".AdminReporterActivity" android:exported="true"></activity>
+        <activity android:name=".ReporterFeedbackActivity" android:exported="true"></activity>
+        <activity android:name=".AdminReporterViewActivity" android:exported="true"></activity>
+        <activity android:name=".AdminPostActivity" android:exported="true"></activity>
+        <activity android:name=".NewNewsPost" android:exported="true"></activity>
+        <activity android:name=".AdminUpdatePostActivity" android:exported="true"></activity>
+        <activity android:name=".AdminAprovelPostActivity" android:exported="true"></activity>
+
+
 
     </application>
 

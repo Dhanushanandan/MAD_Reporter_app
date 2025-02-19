@@ -38,11 +38,16 @@ class LoginActivity : AppCompatActivity() {
                             .child(userId)
                             .get()
                             .addOnSuccessListener { dataSnapshot ->
-                                // Display successful login toast
+
                                 Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show()
+                                val type = dataSnapshot.child("type").getValue(String::class.java)
 
                                 // Redirect to DashboardActivity
                                 val intent = Intent(this, DashboardActivity::class.java)
+                                intent.putExtra("email", email)
+                                intent.putExtra("password", password)
+                                intent.putExtra("USER_ID", userId)
+                                intent.putExtra("Type", type)
                                 startActivity(intent)
                                 finish()
                             }
@@ -50,7 +55,7 @@ class LoginActivity : AppCompatActivity() {
                                 Toast.makeText(this, "Failed to fetch user data: ${exception.message}", Toast.LENGTH_SHORT).show()
                             }
                     } else {
-                        Toast.makeText(this, "Login Failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Login Failed: Incorrect Password or email Id", Toast.LENGTH_SHORT).show()
                     }
                 }
             } else {
