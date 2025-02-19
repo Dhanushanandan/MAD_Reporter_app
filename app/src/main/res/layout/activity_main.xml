@@ -66,7 +66,7 @@
                     app:layout_constraintVertical_bias="0.0"
                     app:shapeAppearanceOverlay="@style/roundedImageRounded"
                     app:strokeWidth="1dp"
-                    tools:srcCompat="@drawable/reporter_logo"
+                    app:srcCompat="@drawable/reporter_logo"
                     tools:visibility="visible" />
 
                 <TextView

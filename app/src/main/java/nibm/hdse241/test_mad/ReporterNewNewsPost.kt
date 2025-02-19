@@ -1,36 +1,20 @@
 package nibm.hdse241.test_mad
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 
-class AdminUpdatePostActivity : AppCompatActivity() {
+class ReporterNewNewsPost : AppCompatActivity() {
 
-    private lateinit var database: DatabaseReference
-    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_update_admin_post)
-
-        // Set up window insets listener for edge-to-edge layout
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
+        setContentView(R.layout.activity_reporter_new_news)
 
         val btnSubmitNews = findViewById<Button>(R.id.btn_submit_news)
         val etNewsId = findViewById<EditText>(R.id.et_news_id)
@@ -39,6 +23,7 @@ class AdminUpdatePostActivity : AppCompatActivity() {
         val etNewsLocation = findViewById<EditText>(R.id.et_news_location)
         val tvNewsDateTime = findViewById<EditText>(R.id.Date)
         val spinnerNewsCategory = findViewById<Spinner>(R.id.spinner_news_category)
+        val status = "pending"
 
 
         btnSubmitNews.setOnClickListener {
@@ -57,40 +42,49 @@ class AdminUpdatePostActivity : AppCompatActivity() {
                 Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
             } else {
                 // Store the data in Firebase
-                updateNewsToFirebase(
+                saveNewsToFirebase(
                     newsId,
                     newsTopic,
                     newsContent,
                     newsLocation,
                     newsDateTime,
-                    newsCategory
+                    newsCategory,
+                    status
                 )
             }
         }
-
     }
 
 
-    private fun updateNewsToFirebase(newsId: String, newsTopic: String, newsContent: String,
-                                     newsLocation: String, newsDateTime: String, newsCategory: String) {
-        val database = FirebaseDatabase.getInstance("https://test-mad-af0eb-default-rtdb.asia-southeast1.firebasedatabase.app/")
-        val newsRef: DatabaseReference = database.getReference("NewsPost")
+    private fun saveNewsToFirebase(
+        newsId: String, newsTopic: String, newsContent: String,
+        newsLocation: String, newsDateTime: String, newsCategory: String, status: String
+    ) {
+        // Firebase Realtime Database reference
+        val database =
+            FirebaseDatabase.getInstance("https://test-mad-af0eb-default-rtdb.asia-southeast1.firebasedatabase.app/")
+        val newsRef: DatabaseReference = database.getReference("ReporterNewsPost")
 
+        // Check if the newsId already exists in Firebase
         newsRef.child(newsId).get().addOnSuccessListener { snapshot ->
             if (snapshot.exists()) {
-                val updateMap = mapOf(
-                    "newsId" to newsId,
-                    "newsTopic" to newsTopic,
-                    "newsContent" to newsContent,
-                    "newsLocation" to newsLocation,
-                    "newsDateTime" to newsDateTime,
-                    "newsCategory" to newsCategory
+                Toast.makeText(this, "News ID already exists", Toast.LENGTH_SHORT).show()
+            } else {
+                // Create a news post object
+                val newsPost = NewsPost(
+                    newsId,
+                    newsTopic,
+                    newsContent,
+                    newsLocation,
+                    newsDateTime,
+                    newsCategory,
+                    status
                 )
 
-                newsRef.child(newsId).updateChildren(updateMap)
-                    .addOnSuccessListener {
-                        Toast.makeText(this, "News updated successfully!", Toast.LENGTH_SHORT).show()
-
+                // Save news post to Firebase under the node "NewsPost"
+                newsRef.child(newsId).setValue(newsPost).addOnCompleteListener {
+                    if (it.isSuccessful) {
+                        Toast.makeText(this, "News posted successfully", Toast.LENGTH_SHORT).show()
                         val btnSubmitNews = findViewById<Button>(R.id.btn_submit_news)
                         val etNewsId = findViewById<EditText>(R.id.et_news_id)
                         val etNewsTopic = findViewById<EditText>(R.id.et_news_topic)
@@ -99,19 +93,17 @@ class AdminUpdatePostActivity : AppCompatActivity() {
                         val tvNewsDateTime = findViewById<EditText>(R.id.Date)
                         val spinnerNewsCategory = findViewById<Spinner>(R.id.spinner_news_category)
 
+
                         etNewsId.text.clear()
                         etNewsTopic.text.clear()
                         etNewsContent.text.clear()
                         etNewsLocation.text.clear()
                         tvNewsDateTime.text.clear()
 
-
+                    } else {
+                        Toast.makeText(this, "Failed to post news", Toast.LENGTH_SHORT).show()
                     }
-                    .addOnFailureListener { exception ->
-                        Toast.makeText(this, "Update failed: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    }
-            } else {
-                Toast.makeText(this, "News ID does not exist", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -122,6 +114,7 @@ class AdminUpdatePostActivity : AppCompatActivity() {
         val newsContent: String,
         val newsLocation: String,
         val newsDateTime: String,
-        val newsCategory: String
+        val newsCategory: String,
+        val status: String
     )
 }

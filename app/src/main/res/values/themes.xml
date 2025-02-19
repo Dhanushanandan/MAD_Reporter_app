@@ -13,4 +13,10 @@
     <style name="Floating" parent="Widget.Design.FloatingActionButton">
         <item name="android:foreground">@drawable/floating_background</item>
     </style>
+
+    <style name="NewsTextStyle">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
 </resources>

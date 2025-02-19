@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -24,52 +25,81 @@ class AdminPostActivity : AppCompatActivity() {
             insets
         }
 
-        val newnews: Button = findViewById(R.id.newnews)
+        val type = intent.getStringExtra("Type")
 
-        newnews.setOnClickListener {
-            val intent = Intent(this, NewNewsPost::class.java)
-            startActivity(intent)
-        }
+        if(type == "admin"){
 
-        val update_news: Button = findViewById(R.id.update_news)
+            val newnews: Button = findViewById(R.id.newnews)
 
-        update_news.setOnClickListener {
-            val intent = Intent(this, AdminUpdatePostActivity::class.java)
-            startActivity(intent)
-        }
-
-        val approvel_news: Button = findViewById(R.id.approvel_news)
-
-        approvel_news.setOnClickListener {
-            val intent = Intent(this, AdminAprovelPostActivity::class.java)
-            startActivity(intent)
-        }
-
-
-        val btn_remove_news: Button = findViewById(R.id.btn_remove_news)
-        val etNewsId = findViewById<EditText>(R.id.et_news_id)
-
-        btn_remove_news.setOnClickListener {
-            val newsId = etNewsId.text.toString().trim()
-
-            if (newsId.isNotEmpty()) {
-                FirebaseDatabase
-                    .getInstance("https://test-mad-af0eb-default-rtdb.asia-southeast1.firebasedatabase.app")
-                    .getReference("NewsPost")
-                    .child(newsId) // Use the correct variable
-                    .removeValue()
-                    .addOnCompleteListener { dbTask ->
-                        if (dbTask.isSuccessful) {
-                            Toast.makeText(this, "Post Removed Successfully", Toast.LENGTH_SHORT).show()
-                            etNewsId.text.clear() // Correct way to clear the EditText
-                        } else {
-                            Toast.makeText(this, "Error Removing News Post: ${dbTask.exception?.message}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-            } else {
-                Toast.makeText(this, "Enter the News ID", Toast.LENGTH_SHORT).show()
+            newnews.setOnClickListener {
+                val intent = Intent(this, NewNewsPost::class.java)
+                startActivity(intent)
             }
+
+            val update_news: Button = findViewById(R.id.update_news)
+
+            update_news.setOnClickListener {
+                val intent = Intent(this, AdminUpdatePostActivity::class.java)
+                startActivity(intent)
+            }
+
+//            val approvel_news: Button = findViewById(R.id.approvel_news)
+//
+//            approvel_news.setOnClickListener {
+//                val intent = Intent(this, AdminAprovelPostActivity::class.java)
+//                startActivity(intent)
+//            }
+
+
+            val btn_remove_news: Button = findViewById(R.id.btn_remove_news)
+            val etNewsId = findViewById<EditText>(R.id.et_news_id)
+
+            btn_remove_news.setOnClickListener {
+                val newsId = etNewsId.text.toString().trim()
+
+                if (newsId.isNotEmpty()) {
+                    FirebaseDatabase
+                        .getInstance("https://test-mad-af0eb-default-rtdb.asia-southeast1.firebasedatabase.app")
+                        .getReference("NewsPost")
+                        .child(newsId) // Use the correct variable
+                        .removeValue()
+                        .addOnCompleteListener { dbTask ->
+                            if (dbTask.isSuccessful) {
+                                Toast.makeText(this, "Post Removed Successfully", Toast.LENGTH_SHORT).show()
+                                etNewsId.text.clear() // Correct way to clear the EditText
+                            } else {
+                                Toast.makeText(this, "Error Removing News Post: ${dbTask.exception?.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                } else {
+                    Toast.makeText(this, "Enter the News ID", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+        }else if (type == "reporter"){
+
+            val btn_remove_news1: Button = findViewById(R.id.btn_remove_news)
+            btn_remove_news1.isEnabled = false
+
+            val newnews: Button = findViewById(R.id.newnews)
+
+            newnews.setOnClickListener {
+                val intent = Intent(this, ReporterNewNewsPost::class.java)
+                startActivity(intent)
+            }
+
+            val update_news: Button = findViewById(R.id.update_news)
+
+            update_news.setOnClickListener {
+                val intent = Intent(this, ReporterUpdatePostActivity::class.java)
+                startActivity(intent)
+            }
+
+
+
         }
+
+
 
 
     }

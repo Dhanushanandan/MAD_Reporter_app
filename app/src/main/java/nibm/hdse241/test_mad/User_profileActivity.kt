@@ -127,14 +127,27 @@ class User_profileActivity : AppCompatActivity() {
                                             .child(userId)
                                             .updateChildren(userUpdates)
                                             .addOnSuccessListener {
-                                                Toast.makeText(this, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(
+                                                    this,
+                                                    "Profile updated successfully!",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                                 // Redirect to Login page
-                                                startActivity(Intent(this, LoginActivity::class.java))
+                                                startActivity(
+                                                    Intent(
+                                                        this,
+                                                        LoginActivity::class.java
+                                                    )
+                                                )
                                                 finish()
 
                                             }
                                             .addOnFailureListener { exception ->
-                                                Toast.makeText(this, "Update failed: ${exception.message}", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(
+                                                    this,
+                                                    "Update failed: ${exception.message}",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                             }
 
                                     } else {

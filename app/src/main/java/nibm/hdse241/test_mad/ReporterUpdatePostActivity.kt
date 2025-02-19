@@ -1,6 +1,5 @@
 package nibm.hdse241.test_mad
 
-import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -14,7 +13,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 
-class AdminUpdatePostActivity : AppCompatActivity() {
+class ReporterUpdatePostActivity : AppCompatActivity() {
 
     private lateinit var database: DatabaseReference
     private lateinit var auth: FirebaseAuth
@@ -22,7 +21,7 @@ class AdminUpdatePostActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_update_admin_post)
+        setContentView(R.layout.activity_reporter_update_post)
 
         // Set up window insets listener for edge-to-edge layout
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -39,6 +38,7 @@ class AdminUpdatePostActivity : AppCompatActivity() {
         val etNewsLocation = findViewById<EditText>(R.id.et_news_location)
         val tvNewsDateTime = findViewById<EditText>(R.id.Date)
         val spinnerNewsCategory = findViewById<Spinner>(R.id.spinner_news_category)
+        val status = "pending"
 
 
         btnSubmitNews.setOnClickListener {
@@ -63,7 +63,8 @@ class AdminUpdatePostActivity : AppCompatActivity() {
                     newsContent,
                     newsLocation,
                     newsDateTime,
-                    newsCategory
+                    newsCategory,
+                    status
                 )
             }
         }
@@ -72,9 +73,9 @@ class AdminUpdatePostActivity : AppCompatActivity() {
 
 
     private fun updateNewsToFirebase(newsId: String, newsTopic: String, newsContent: String,
-                                     newsLocation: String, newsDateTime: String, newsCategory: String) {
+                                     newsLocation: String, newsDateTime: String, newsCategory: String, status: String) {
         val database = FirebaseDatabase.getInstance("https://test-mad-af0eb-default-rtdb.asia-southeast1.firebasedatabase.app/")
-        val newsRef: DatabaseReference = database.getReference("NewsPost")
+        val newsRef: DatabaseReference = database.getReference("ReporterNewsPost")
 
         newsRef.child(newsId).get().addOnSuccessListener { snapshot ->
             if (snapshot.exists()) {
@@ -84,7 +85,8 @@ class AdminUpdatePostActivity : AppCompatActivity() {
                     "newsContent" to newsContent,
                     "newsLocation" to newsLocation,
                     "newsDateTime" to newsDateTime,
-                    "newsCategory" to newsCategory
+                    "newsCategory" to newsCategory,
+                    "status" to status
                 )
 
                 newsRef.child(newsId).updateChildren(updateMap)
@@ -122,6 +124,7 @@ class AdminUpdatePostActivity : AppCompatActivity() {
         val newsContent: String,
         val newsLocation: String,
         val newsDateTime: String,
-        val newsCategory: String
+        val newsCategory: String,
+        val status: String
     )
 }
