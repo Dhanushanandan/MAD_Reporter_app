@@ -1,6 +1,7 @@
 package nibm.hdse241.test_mad
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
@@ -13,21 +14,6 @@ class NewsDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_news_detail)
 
-        val btn_approve2: Button = findViewById(R.id.btn_approve2)
-        val btn_reject2: Button = findViewById(R.id.btn_reject2)
-        val btn_update2: Button = findViewById(R.id.btn_update2)
-
-        val type = intent.getStringExtra("Type")
-        if(type == "reporter" || type == "viewer" ){
-            btn_approve2.isEnabled = false
-            btn_reject2.isEnabled = false
-            btn_update2.isEnabled = false
-
-            btn_approve2.visibility = View.GONE
-            btn_reject2.visibility = View.GONE
-            btn_update2.visibility = View.GONE
-
-        }
 
         val titleTextView: TextView = findViewById(R.id.news_detail_title)
         val contentTextView: TextView = findViewById(R.id.news_detail_content)
@@ -40,6 +26,12 @@ class NewsDetailActivity : AppCompatActivity() {
         val newsDate = intent.getStringExtra("newsDate")
         val newsImage = intent.getStringExtra("newsImage")
 
+        // Log received data for debugging
+        Log.d("NewsDetailActivity", "Title: $newsTitle")
+        Log.d("NewsDetailActivity", "Content: $newsContent")
+        Log.d("NewsDetailActivity", "Date: $newsDate")
+        Log.d("NewsDetailActivity", "Image URL: $newsImage")
+
         // Set data in views
         titleTextView.text = newsTitle
         contentTextView.text = newsContent
@@ -47,7 +39,12 @@ class NewsDetailActivity : AppCompatActivity() {
 
         // Load image using Glide
         if (!newsImage.isNullOrEmpty()) {
-            Glide.with(this).load(newsImage).into(imageView)
+            Glide.with(this)
+                .load(newsImage)
+                .error(R.drawable.reporter_logo) // Display error image if loading fails
+                .into(imageView)
+        } else {
+            Log.e("NewsDetailActivity", "Image URL is empty or invalid.")
         }
     }
 }

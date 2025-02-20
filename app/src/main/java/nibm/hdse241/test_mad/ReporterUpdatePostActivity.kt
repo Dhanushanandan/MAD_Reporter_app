@@ -1,8 +1,12 @@
 package nibm.hdse241.test_mad
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -12,73 +16,115 @@ import androidx.core.view.WindowInsetsCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
+import org.json.JSONObject
+import java.io.IOException
+import java.io.InputStream
 
 class ReporterUpdatePostActivity : AppCompatActivity() {
 
-    private lateinit var database: DatabaseReference
-    private lateinit var auth: FirebaseAuth
+    private lateinit var imgPreview: ImageView
+    private var imageUri: Uri? = null
+    private val IMGUR_CLIENT_ID = "2357012bba6f9b4"  // Replace with your Imgur Client ID
+    private val PICK_IMAGE_REQUEST = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_reporter_update_post)
-
-        // Set up window insets listener for edge-to-edge layout
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
+        setContentView(R.layout.activity_new_post)
 
         val btnSubmitNews = findViewById<Button>(R.id.btn_submit_news)
-        val etNewsId = findViewById<EditText>(R.id.et_news_id)
-        val etNewsTopic = findViewById<EditText>(R.id.et_news_topic)
-        val etNewsContent = findViewById<EditText>(R.id.et_news_content)
-        val etNewsLocation = findViewById<EditText>(R.id.et_news_location)
-        val tvNewsDateTime = findViewById<EditText>(R.id.Date)
-        val spinnerNewsCategory = findViewById<Spinner>(R.id.spinner_news_category)
-        val status = "pending"
+        val btnSelectImage = findViewById<Button>(R.id.btn_upload_image)
+        imgPreview = findViewById(R.id.iv_news_image)
 
-
-        btnSubmitNews.setOnClickListener {
-            // Get user input values
-            val newsId = etNewsId.text.toString().trim()
-            val newsTopic = etNewsTopic.text.toString().trim()
-            val newsContent = etNewsContent.text.toString().trim()
-            val newsLocation = etNewsLocation.text.toString().trim()
-            val newsDateTime = tvNewsDateTime.text.toString().trim()
-            val newsCategory = spinnerNewsCategory.selectedItem.toString()
-
-            // Ensure all required fields are filled
-            if (newsId.isEmpty() || newsTopic.isEmpty() || newsContent.isEmpty() ||
-                newsLocation.isEmpty() || newsDateTime.isEmpty()
-            ) {
-                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
-            } else {
-                // Store the data in Firebase
-                updateNewsToFirebase(
-                    newsId,
-                    newsTopic,
-                    newsContent,
-                    newsLocation,
-                    newsDateTime,
-                    newsCategory,
-                    status
-                )
-            }
-        }
-
+        btnSelectImage.setOnClickListener { selectImageFromGallery() }
+        btnSubmitNews.setOnClickListener { validateAndUploadNews() }
     }
 
+    private fun selectImageFromGallery() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "image/*"
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+            imageUri = data.data
+            imgPreview.setImageURI(imageUri)
+        }
+    }
+
+    private fun validateAndUploadNews() {
+        val newsId = findViewById<EditText>(R.id.et_news_id).text.toString().trim()
+        val newsTopic = findViewById<EditText>(R.id.et_news_topic).text.toString().trim()
+        val newsContent = findViewById<EditText>(R.id.et_news_content).text.toString().trim()
+        val newsLocation = findViewById<EditText>(R.id.et_news_location).text.toString().trim()
+        val newsDateTime = findViewById<EditText>(R.id.Date).text.toString().trim()
+        val newsCategory = findViewById<Spinner>(R.id.spinner_news_category).selectedItem.toString()
+
+        if (newsId.isEmpty() || newsTopic.isEmpty() || newsContent.isEmpty() ||
+            newsLocation.isEmpty() || newsDateTime.isEmpty()) {
+            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+        } else {
+            if (imageUri != null) {
+                uploadImageToImgur(newsId, newsTopic, newsContent, newsLocation, newsDateTime, newsCategory)
+            } else {
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun uploadImageToImgur(newsId: String, newsTopic: String, newsContent: String,
+                                   newsLocation: String, newsDateTime: String, newsCategory: String) {
+        val inputStream: InputStream? = contentResolver.openInputStream(imageUri!!)
+        val byteArray = inputStream!!.readBytes()
+        inputStream.close()
+
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("image", "news.jpg",
+                RequestBody.create("image/*".toMediaTypeOrNull(), byteArray))
+            .build()
+
+        val request = Request.Builder()
+            .url("https://api.imgur.com/3/image")
+            .addHeader("Authorization", "Client-ID $IMGUR_CLIENT_ID")
+            .post(requestBody)
+            .build()
+
+        OkHttpClient().newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread { Toast.makeText(applicationContext, "Image upload failed", Toast.LENGTH_SHORT).show() }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    val responseBody = response.body!!.string()
+                    val imageUrl = JSONObject(responseBody).getJSONObject("data").getString("link")
+                    runOnUiThread {
+                        Toast.makeText(applicationContext, "Image uploaded successfully!", Toast.LENGTH_SHORT).show()
+                        updateNewsToFirebase(newsId, newsTopic, newsContent, newsLocation, newsDateTime, newsCategory, imageUrl)
+                    }
+                }
+            }
+        })
+    }
 
     private fun updateNewsToFirebase(newsId: String, newsTopic: String, newsContent: String,
-                                     newsLocation: String, newsDateTime: String, newsCategory: String, status: String) {
-        val database = FirebaseDatabase.getInstance("https://test-mad-af0eb-default-rtdb.asia-southeast1.firebasedatabase.app/")
-        val newsRef: DatabaseReference = database.getReference("ReporterNewsPost")
+                                     newsLocation: String, newsDateTime: String, newsCategory: String, newImageUrl: String?) {
+        val databaseRef = FirebaseDatabase.getInstance("https://test-mad-af0eb-default-rtdb.asia-southeast1.firebasedatabase.app/")
+            .getReference("ReporterNewsPost").child(newsId)
 
-        newsRef.child(newsId).get().addOnSuccessListener { snapshot ->
+        databaseRef.get().addOnSuccessListener { snapshot ->
             if (snapshot.exists()) {
+                val existingImageUrl = snapshot.child("imageUrl").getValue(String::class.java)
                 val updateMap = mapOf(
                     "newsId" to newsId,
                     "newsTopic" to newsTopic,
@@ -86,45 +132,26 @@ class ReporterUpdatePostActivity : AppCompatActivity() {
                     "newsLocation" to newsLocation,
                     "newsDateTime" to newsDateTime,
                     "newsCategory" to newsCategory,
-                    "status" to status
+                    "imageUrl" to (newImageUrl ?: existingImageUrl), // Keep existing image if new one is not uploaded
+                    "status" to "pending"
                 )
-
-                newsRef.child(newsId).updateChildren(updateMap)
-                    .addOnSuccessListener {
-                        Toast.makeText(this, "News updated successfully!", Toast.LENGTH_SHORT).show()
-
-                        val btnSubmitNews = findViewById<Button>(R.id.btn_submit_news)
-                        val etNewsId = findViewById<EditText>(R.id.et_news_id)
-                        val etNewsTopic = findViewById<EditText>(R.id.et_news_topic)
-                        val etNewsContent = findViewById<EditText>(R.id.et_news_content)
-                        val etNewsLocation = findViewById<EditText>(R.id.et_news_location)
-                        val tvNewsDateTime = findViewById<EditText>(R.id.Date)
-                        val spinnerNewsCategory = findViewById<Spinner>(R.id.spinner_news_category)
-
-                        etNewsId.text.clear()
-                        etNewsTopic.text.clear()
-                        etNewsContent.text.clear()
-                        etNewsLocation.text.clear()
-                        tvNewsDateTime.text.clear()
-
-
-                    }
-                    .addOnFailureListener { exception ->
-                        Toast.makeText(this, "Update failed: ${exception.message}", Toast.LENGTH_SHORT).show()
-                    }
+                databaseRef.updateChildren(updateMap).addOnCompleteListener { task ->
+                    val message = if (task.isSuccessful) "News updated successfully" else "Failed to update news"
+                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                    if (task.isSuccessful) clearFields()
+                }
             } else {
                 Toast.makeText(this, "News ID does not exist", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    data class NewsPost(
-        val newsId: String,
-        val newsTopic: String,
-        val newsContent: String,
-        val newsLocation: String,
-        val newsDateTime: String,
-        val newsCategory: String,
-        val status: String
-    )
+    private fun clearFields() {
+        findViewById<EditText>(R.id.et_news_id).text.clear()
+        findViewById<EditText>(R.id.et_news_topic).text.clear()
+        findViewById<EditText>(R.id.et_news_content).text.clear()
+        findViewById<EditText>(R.id.et_news_location).text.clear()
+        findViewById<EditText>(R.id.Date).text.clear()
+        imgPreview.setImageResource(0) // Remove preview image
+    }
 }

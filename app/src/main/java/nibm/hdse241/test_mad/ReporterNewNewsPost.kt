@@ -1,111 +1,134 @@
 package nibm.hdse241.test_mad
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
+import org.json.JSONObject
+import java.io.IOException
 
 class ReporterNewNewsPost : AppCompatActivity() {
 
+    private lateinit var imgPreview: ImageView
+    private var imageUri: Uri? = null
+    private val IMGUR_CLIENT_ID = "2357012bba6f9b4"  // Replace with your Imgur Client ID
+    private val PICK_IMAGE_REQUEST = 1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_reporter_new_news)
+        setContentView(R.layout.activity_new_post)
 
         val btnSubmitNews = findViewById<Button>(R.id.btn_submit_news)
-        val etNewsId = findViewById<EditText>(R.id.et_news_id)
-        val etNewsTopic = findViewById<EditText>(R.id.et_news_topic)
-        val etNewsContent = findViewById<EditText>(R.id.et_news_content)
-        val etNewsLocation = findViewById<EditText>(R.id.et_news_location)
-        val tvNewsDateTime = findViewById<EditText>(R.id.Date)
-        val spinnerNewsCategory = findViewById<Spinner>(R.id.spinner_news_category)
-        val status = "pending"
+        val btnSelectImage = findViewById<Button>(R.id.btn_upload_image)
+        imgPreview = findViewById(R.id.iv_news_image)
 
+        btnSelectImage.setOnClickListener { selectImageFromGallery() }
+        btnSubmitNews.setOnClickListener { validateAndUploadNews() }
+    }
 
-        btnSubmitNews.setOnClickListener {
-            // Get user input values
-            val newsId = etNewsId.text.toString().trim()
-            val newsTopic = etNewsTopic.text.toString().trim()
-            val newsContent = etNewsContent.text.toString().trim()
-            val newsLocation = etNewsLocation.text.toString().trim()
-            val newsDateTime = tvNewsDateTime.text.toString().trim()
-            val newsCategory = spinnerNewsCategory.selectedItem.toString()
+    private fun selectImageFromGallery() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "image/*"
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+    }
 
-            // Ensure all required fields are filled
-            if (newsId.isEmpty() || newsTopic.isEmpty() || newsContent.isEmpty() ||
-                newsLocation.isEmpty() || newsDateTime.isEmpty()
-            ) {
-                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+            imageUri = data.data
+            imgPreview.setImageURI(imageUri)
+        }
+    }
+
+    private fun validateAndUploadNews() {
+        val newsId = findViewById<EditText>(R.id.et_news_id).text.toString().trim()
+        val newsTopic = findViewById<EditText>(R.id.et_news_topic).text.toString().trim()
+        val newsContent = findViewById<EditText>(R.id.et_news_content).text.toString().trim()
+        val newsLocation = findViewById<EditText>(R.id.et_news_location).text.toString().trim()
+        val newsDateTime = findViewById<EditText>(R.id.Date).text.toString().trim()
+        val newsCategory = findViewById<Spinner>(R.id.spinner_news_category).selectedItem.toString()
+
+        if (newsId.isEmpty() || newsTopic.isEmpty() || newsContent.isEmpty() ||
+            newsLocation.isEmpty() || newsDateTime.isEmpty() || imageUri == null) {
+            Toast.makeText(this, "Please fill all fields and select an image", Toast.LENGTH_SHORT).show()
+        } else {
+            uploadImageToImgur(newsId, newsTopic, newsContent, newsLocation, newsDateTime, newsCategory)
+        }
+    }
+
+    private fun uploadImageToImgur(newsId: String, newsTopic: String, newsContent: String,
+                                   newsLocation: String, newsDateTime: String, newsCategory: String) {
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("image", "news.jpg",
+                RequestBody.create("image/*".toMediaTypeOrNull(), contentResolver.openInputStream(imageUri!!)!!.readBytes()))
+            .build()
+
+        val request = Request.Builder()
+            .url("https://api.imgur.com/3/image")
+            .addHeader("Authorization", "Client-ID $IMGUR_CLIENT_ID")
+            .post(requestBody)
+            .build()
+
+        OkHttpClient().newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread { Toast.makeText(applicationContext, "Image upload failed", Toast.LENGTH_SHORT).show() }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                response.use {
+                    val imageUrl = JSONObject(response.body!!.string()).getJSONObject("data").getString("link")
+                    runOnUiThread {
+                        Toast.makeText(applicationContext, "Image uploaded", Toast.LENGTH_SHORT).show()
+                        saveNewsToFirebase(newsId, newsTopic, newsContent, newsLocation, newsDateTime, newsCategory, imageUrl)
+                    }
+                }
+            }
+        })
+    }
+
+    private fun saveNewsToFirebase(newsId: String, newsTopic: String, newsContent: String,
+                                   newsLocation: String, newsDateTime: String, newsCategory: String, imageUrl: String) {
+        val databaseRef = FirebaseDatabase.getInstance("https://test-mad-af0eb-default-rtdb.asia-southeast1.firebasedatabase.app/")
+            .getReference("ReporterNewsPost").child(newsId)
+
+        databaseRef.get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                Toast.makeText(this, "News ID already exists", Toast.LENGTH_SHORT).show()
             } else {
-                // Store the data in Firebase
-                saveNewsToFirebase(
-                    newsId,
-                    newsTopic,
-                    newsContent,
-                    newsLocation,
-                    newsDateTime,
-                    newsCategory,
-                    status
-                )
+                databaseRef.setValue(NewsPost(newsId, newsTopic, newsContent, newsLocation, newsDateTime, newsCategory, imageUrl,"pending"))
+                    .addOnCompleteListener { task ->
+                        val message = if (task.isSuccessful) "News posted successfully" else "Failed to post news"
+                        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                        if (task.isSuccessful) clearFields()
+                    }
             }
         }
     }
 
-
-    private fun saveNewsToFirebase(
-        newsId: String, newsTopic: String, newsContent: String,
-        newsLocation: String, newsDateTime: String, newsCategory: String, status: String
-    ) {
-        // Firebase Realtime Database reference
-        val database =
-            FirebaseDatabase.getInstance("https://test-mad-af0eb-default-rtdb.asia-southeast1.firebasedatabase.app/")
-        val newsRef: DatabaseReference = database.getReference("ReporterNewsPost")
-
-        // Check if the newsId already exists in Firebase
-        newsRef.child(newsId).get().addOnSuccessListener { snapshot ->
-            if (snapshot.exists()) {
-                Toast.makeText(this, "News ID already exists", Toast.LENGTH_SHORT).show()
-            } else {
-                // Create a news post object
-                val newsPost = NewsPost(
-                    newsId,
-                    newsTopic,
-                    newsContent,
-                    newsLocation,
-                    newsDateTime,
-                    newsCategory,
-                    status
-                )
-
-                // Save news post to Firebase under the node "NewsPost"
-                newsRef.child(newsId).setValue(newsPost).addOnCompleteListener {
-                    if (it.isSuccessful) {
-                        Toast.makeText(this, "News posted successfully", Toast.LENGTH_SHORT).show()
-                        val btnSubmitNews = findViewById<Button>(R.id.btn_submit_news)
-                        val etNewsId = findViewById<EditText>(R.id.et_news_id)
-                        val etNewsTopic = findViewById<EditText>(R.id.et_news_topic)
-                        val etNewsContent = findViewById<EditText>(R.id.et_news_content)
-                        val etNewsLocation = findViewById<EditText>(R.id.et_news_location)
-                        val tvNewsDateTime = findViewById<EditText>(R.id.Date)
-                        val spinnerNewsCategory = findViewById<Spinner>(R.id.spinner_news_category)
-
-
-                        etNewsId.text.clear()
-                        etNewsTopic.text.clear()
-                        etNewsContent.text.clear()
-                        etNewsLocation.text.clear()
-                        tvNewsDateTime.text.clear()
-
-                    } else {
-                        Toast.makeText(this, "Failed to post news", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }
+    private fun clearFields() {
+        findViewById<EditText>(R.id.et_news_id).text.clear()
+        findViewById<EditText>(R.id.et_news_topic).text.clear()
+        findViewById<EditText>(R.id.et_news_content).text.clear()
+        findViewById<EditText>(R.id.et_news_location).text.clear()
+        findViewById<EditText>(R.id.Date).text.clear()
+        imgPreview.setImageResource(0) // Remove preview image
     }
 
     data class NewsPost(
@@ -115,6 +138,7 @@ class ReporterNewNewsPost : AppCompatActivity() {
         val newsLocation: String,
         val newsDateTime: String,
         val newsCategory: String,
+        val imageUrl: String,
         val status: String
     )
 }

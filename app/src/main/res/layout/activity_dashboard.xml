@@ -82,24 +82,46 @@
                     android:textStyle="bold"
                     app:layout_constraintEnd_toStartOf="@+id/user_profile"
                     app:layout_constraintTop_toTopOf="parent" />
+
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <EditText
-                android:id="@+id/editTextText2"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_margin="16dp"
-                android:background="@drawable/search_edit_background"
-                android:drawableStart="@drawable/search"
-                android:drawablePadding="8dp"
-                android:ems="10"
-                android:hint="Search News....."
-                android:inputType="text"
-                android:padding="12dp"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white"
-                android:textSize="16sp" />
-            <!-- Category Bar (Horizontal Scroll) -->
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/searchtxt"
+                    android:layout_width="300dp"
+                    android:layout_height="50dp"
+                    android:layout_margin="16dp"
+                    android:background="@drawable/search_edit_background"
+                    android:drawableStart="@drawable/search"
+                    android:drawablePadding="8dp"
+                    android:ems="10"
+                    android:hint="Search News....."
+                    android:inputType="text"
+                    android:padding="12dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white"
+                    android:textSize="16sp" />
+                <!-- Category Bar (Horizontal Scroll) -->
+
+                <Button
+                    android:id="@+id/searchbtn"
+                    android:layout_width="55dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="16dp"
+                    android:background="@drawable/search_edit_background"
+                    android:drawableLeft="@drawable/search"
+                    android:drawablePadding="8dp"
+                    android:ems="10"
+                    android:padding="2dp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/white"
+                    android:contentDescription="Search Button"/>
+
+            </LinearLayout>
+
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -258,7 +280,7 @@
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="60dp"
         app:layout_constraintBottom_toBottomOf="@+id/scrollView2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -283,16 +305,16 @@
                     android:layout_gravity="center"
                     android:layout_margin="5dp"
                     android:layout_weight="0.2"
-                    app:srcCompat="@drawable/screen"/>
+                    app:srcCompat="@drawable/screen" />
 
                 <ImageView
                     android:id="@+id/postbtn"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_margin="5dp"
                     android:layout_gravity="center"
+                    android:layout_margin="5dp"
                     android:layout_weight="0.2"
-                    app:srcCompat="@drawable/post"/>
+                    app:srcCompat="@drawable/post" />
 
                 <ImageView
                     android:id="@+id/Homebtn"
@@ -307,10 +329,10 @@
                     android:id="@+id/Aprovelbtn"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_margin="5dp"
                     android:layout_gravity="center"
+                    android:layout_margin="5dp"
                     android:layout_weight="0.2"
-                    app:srcCompat="@drawable/checklist"/>
+                    app:srcCompat="@drawable/checklist" />
 
                 <ImageView
                     android:id="@+id/Logoutbtn"
@@ -324,12 +346,13 @@
 
 
         </com.google.android.material.bottomappbar.BottomAppBar>
+
         <com.google.android.material.floatingactionbutton.FloatingActionButton
+            style="@style/Floating"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:maxImageSize="20dp"
             android:layout_gravity="center"
-            style="@style/Floating"
-        android:contentDescription="Home" />
+            android:contentDescription="Home"
+            app:maxImageSize="20dp" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -24,6 +24,9 @@ class AdminAprovelPostActivity : AppCompatActivity() {
     private lateinit var database: DatabaseReference
     private lateinit var newsContainer: LinearLayout
     private lateinit var progressBar: ProgressBar
+    var type : String? = null
+
+
 
 
 
@@ -40,6 +43,7 @@ class AdminAprovelPostActivity : AppCompatActivity() {
         }
 
         val type = intent.getStringExtra("Type")
+        Log.d("AdminAprovelPostActivity", "type: $type")
 
         // Initialize Firebase Database Reference
         database = FirebaseDatabase.getInstance("https://test-mad-af0eb-default-rtdb.asia-southeast1.firebasedatabase.app/")
@@ -67,8 +71,11 @@ class AdminAprovelPostActivity : AppCompatActivity() {
                     val newsTitle = newsSnapshot.child("newsTopic").getValue(String::class.java) ?: "No Title"
                     val newsContent = newsSnapshot.child("newsContent").getValue(String::class.java) ?: "No Content"
                     val newsDate = newsSnapshot.child("newsDateTime").getValue(String::class.java) ?: "No Date"
-                    val newsImage = newsSnapshot.child("newsImageUrl").getValue(String::class.java) ?: "" // Image URL
+                    val newsImage = newsSnapshot.child("imageUrl").getValue(String::class.java) ?: "" // Image URL
                     val status = newsSnapshot.child("status").getValue(String::class.java) ?: "No Status" // Image URL
+                    val newsId = newsSnapshot.child("newsId").getValue(String::class.java) ?: "" // Image URL
+                    val newsLocation = newsSnapshot.child("newsLocation").getValue(String::class.java) ?: "" // Image URL
+                    val newsCategory = newsSnapshot.child("newsCategory").getValue(String::class.java) ?: "" // Image URL
 
                     // Create a new TextView for news item
                     val newsTextView = TextView(this@AdminAprovelPostActivity).apply {
@@ -81,13 +88,16 @@ class AdminAprovelPostActivity : AppCompatActivity() {
 
                     // Set click listener to open NewsDetailActivity
                     newsTextView.setOnClickListener {
-                        val intent = Intent(this@AdminAprovelPostActivity, NewsDetailActivity::class.java)
+                        val intent = Intent(this@AdminAprovelPostActivity, Admin_Aprovel_NewsActivity::class.java)
                         intent.putExtra("newsTitle", newsTitle)
                         intent.putExtra("newsContent", newsContent)
                         intent.putExtra("newsDate", newsDate)
                         intent.putExtra("newsImage", newsImage)
                         intent.putExtra("Status", status)
                         intent.putExtra("Type", type)
+                        intent.putExtra("newsId", newsId)
+                        intent.putExtra("newsLocation", newsLocation)
+                        intent.putExtra("newsCategory", newsCategory)
                         startActivity(intent)
                     }
 
@@ -101,5 +111,10 @@ class AdminAprovelPostActivity : AppCompatActivity() {
                 Log.e("FirebaseError", "Failed to fetch news: ${error.message}")
             }
         })
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        fetchNews(type)  // Refresh news feed
     }
 }

@@ -7,9 +7,13 @@ import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.RadioButton
+import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -28,6 +32,10 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var database: DatabaseReference
     private lateinit var newsContainer: LinearLayout
     private lateinit var progressBar: ProgressBar
+    private lateinit var categoryRadioGroup: RadioGroup
+    private lateinit var categoryRadioButton: RadioButton
+    private lateinit var searchtxt: EditText
+    private lateinit var searchbtn: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,9 +58,30 @@ class DashboardActivity : AppCompatActivity() {
         // Finding the layout where news will be displayed
         newsContainer = findViewById(R.id.view2)
         progressBar = findViewById(R.id.loading2)
+        categoryRadioGroup = findViewById(R.id.rg_categories)
+
+
+        // Set listener for category selection
+        categoryRadioGroup.setOnCheckedChangeListener { _, checkedId ->
+            categoryRadioButton = findViewById(checkedId)
+            val selectedCategory = categoryRadioButton.text.toString()
+            fetchNews(selectedCategory) // Fetch news based on the selected category
+        }
+
+        searchtxt = findViewById(R.id.searchtxt)
+        searchbtn = findViewById(R.id.searchbtn)
+
+        searchbtn.setOnClickListener {
+            val news = searchtxt.text.toString().trim()
+            if (news.isNotEmpty()) {
+                searchNews(news)
+            } else {
+                Toast.makeText(this, "Please enter newsID or News Title to search", Toast.LENGTH_SHORT).show()
+            }
+        }
 
         // Fetch and display news
-        fetchNews()
+        fetchNews("All")
 
         //fetch latest news
         latestfetchNews()
@@ -77,7 +106,7 @@ class DashboardActivity : AppCompatActivity() {
 
         } else if (type == "reporter") {
             Reporterbtn.isEnabled = false
-            Aprovelbtn.isEnabled = false
+//            Aprovelbtn.isEnabled = false
         }
 
 
@@ -137,19 +166,19 @@ class DashboardActivity : AppCompatActivity() {
 
     }
 
-    private fun fetchNews() {
+    private fun fetchNews(category: String) {
         progressBar.visibility = ProgressBar.VISIBLE
 
-        database.addListenerForSingleValueEvent(object : ValueEventListener {
+        database.orderByChild("newsCategory").equalTo(category).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 progressBar.visibility = ProgressBar.GONE
-                newsContainer.removeAllViews() // Clear previous views
+                newsContainer.removeAllViews() // Clear the previous news
 
                 for (newsSnapshot in snapshot.children) {
                     val newsTitle = newsSnapshot.child("newsTopic").getValue(String::class.java) ?: "No Title"
                     val newsContent = newsSnapshot.child("newsContent").getValue(String::class.java) ?: "No Content"
                     val newsDate = newsSnapshot.child("newsDateTime").getValue(String::class.java) ?: "No Date"
-                    val newsImage = newsSnapshot.child("newsImageUrl").getValue(String::class.java) ?: "" // Image URL
+                    val newsImage = newsSnapshot.child("imageUrl").getValue(String::class.java) ?: "" // Image URL
 
                     // Create a new TextView for news item
                     val newsTextView = TextView(this@DashboardActivity).apply {
@@ -201,24 +230,25 @@ class DashboardActivity : AppCompatActivity() {
                 latestNewsContainer.removeAllViews() // Clear any existing views
 
                 // List to store news details
-                val newsList = mutableListOf<Triple<String, String, String>>()
+                val newsList = mutableListOf<NewsItem>()
 
                 for (newsSnapshot in snapshot.children) {
                     val newsTitle = newsSnapshot.child("newsTopic").getValue(String::class.java) ?: "No Title"
                     val newsDate = newsSnapshot.child("newsDateTime").getValue(String::class.java) ?: "No Date"
                     val newsContent = newsSnapshot.child("newsContent").getValue(String::class.java) ?: "No Content"
+                    val newsImage = newsSnapshot.child("imageUrl").getValue(String::class.java) ?: ""
 
                     // Add data to list
-                    newsList.add(Triple(newsTitle, newsDate, newsContent))
+                    newsList.add(NewsItem(newsTitle, newsDate, newsContent, newsImage))
                 }
 
                 // Sort the list by date (descending order)
-                newsList.sortByDescending { it.second }
+                newsList.sortByDescending { it.newsDate }
 
                 // Add sorted news titles to the layout
-                for ((title, date, content) in newsList) {
+                for (news in newsList) {
                     val newsTextView = TextView(this@DashboardActivity).apply {
-                        text = "$title\n$date"
+                        text = "${news.newsTitle}\n${news.newsDate}"
                         textSize = 16f
                         setPadding(16, 16, 16, 16)
                         gravity = Gravity.START
@@ -228,9 +258,10 @@ class DashboardActivity : AppCompatActivity() {
                         // Set click listener to open NewsDetailActivity with full details
                         setOnClickListener {
                             val intent = Intent(this@DashboardActivity, NewsDetailActivity::class.java).apply {
-                                putExtra("newsTitle", title)
-                                putExtra("newsDate", date)
-                                putExtra("newsContent", content)
+                                putExtra("newsTitle", news.newsTitle)
+                                putExtra("newsDate", news.newsDate)
+                                putExtra("newsContent", news.newsContent)
+                                putExtra("newsImage", news.newsImage)
                             }
                             startActivity(intent)
                         }
@@ -250,13 +281,83 @@ class DashboardActivity : AppCompatActivity() {
     }
 
 
-    override fun onRestart() {
-        super.onRestart()
-        fetchNews()  // Refresh news feed
-        latestfetchNews()  // Refresh latest news feed
+
+    private fun searchNews(news: String) {
+        progressBar.visibility = ProgressBar.VISIBLE
+        newsContainer.removeAllViews() // Clear previous results
+
+        // searching by newsID or newsTopic
+        database.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                progressBar.visibility = ProgressBar.GONE
+
+                var found = false
+                for (newsSnapshot in snapshot.children) {
+                    val newsID = newsSnapshot.child("newsId").getValue(String::class.java) ?: ""
+                    val newsTopic = newsSnapshot.child("newsTopic").getValue(String::class.java) ?: ""
+
+                    Log.d("DashboardActivity", "news: $news")
+                    Log.d("DashboardActivity", "newsID: $newsID")
+                    Log.d("DashboardActivity", "newsTopic: $newsTopic")
+
+                    if (newsID == news  || newsTopic == news) {
+                        val newsTitle = newsTopic
+                        val newsDate = newsSnapshot.child("newsDateTime").getValue(String::class.java) ?: "No Date"
+                        val newsContent = newsSnapshot.child("newsContent").getValue(String::class.java) ?: "No Content"
+                        val newsImage = newsSnapshot.child("imageUrl").getValue(String::class.java) ?: ""
+
+                        val newsTextView = TextView(this@DashboardActivity).apply {
+                            text = "$newsTitle\n$newsDate"
+                            textSize = 16f
+                            setPadding(16, 16, 16, 16)
+                            gravity = Gravity.START
+                            setTextColor(Color.WHITE)
+                            setTypeface(null, Typeface.BOLD)
+
+                            setOnClickListener {
+                                val intent = Intent(this@DashboardActivity, NewsDetailActivity::class.java).apply {
+                                    putExtra("newsTitle", newsTitle)
+                                    putExtra("newsDate", newsDate)
+                                    putExtra("newsContent", newsContent)
+                                    putExtra("newsImage", newsImage)
+                                }
+                                startActivity(intent)
+                            }
+                        }
+
+                        // Add matching news to the layout
+                        newsContainer.addView(newsTextView)
+                        found = true
+                    }
+                }
+
+                if (!found) {
+                    Toast.makeText(this@DashboardActivity, "No news found matching the search", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                progressBar.visibility = ProgressBar.GONE
+                Toast.makeText(this@DashboardActivity, "Failed to load news", Toast.LENGTH_SHORT).show()
+                Log.e("FirebaseError", "Error fetching data: ${error.message}")
+            }
+        })
     }
 
 
+
+
+
+    override fun onRestart() {
+        super.onRestart()
+        fetchNews("All")  // Refresh news feed
+        latestfetchNews()  // Refresh latest news feed
+    }
+
+    // Data class to hold news items
+    data class NewsItem(val newsTitle: String, val newsDate: String, val newsContent: String, val newsImage: String){
+
+    }
 
 }
 

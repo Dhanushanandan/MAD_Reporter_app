@@ -56,6 +56,10 @@ dependencies {
     // Glide dependencies (Correct format)
     implementation("com.github.bumptech.glide:glide:4.16.0")
     kapt("com.github.bumptech.glide:compiler:4.16.0") // Use kapt for Kotlin annotation processing
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation ("com.github.bumptech.glide:glide:4.12.0")
+    annotationProcessor ("com.github.bumptech.glide:compiler:4.12.0")
+
 
 
 }
