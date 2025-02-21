@@ -56,7 +56,7 @@ class DashboardActivity : AppCompatActivity() {
                 .getReference("NewsPost")
 
         // Finding the layout where news will be displayed
-        newsContainer = findViewById(R.id.view2)
+        newsContainer = findViewById(R.id.view1)
         progressBar = findViewById(R.id.loading2)
         categoryRadioGroup = findViewById(R.id.rg_categories)
 
@@ -300,11 +300,15 @@ class DashboardActivity : AppCompatActivity() {
                     Log.d("DashboardActivity", "newsID: $newsID")
                     Log.d("DashboardActivity", "newsTopic: $newsTopic")
 
-                    if (newsID == news  || newsTopic == news) {
-                        val newsTitle = newsTopic
+                    if (newsID.contains(news,ignoreCase = true) || newsTopic.contains(news,ignoreCase = true)) {
+                        val newsTitle = newsSnapshot.child("newsTopic").getValue(String::class.java) ?: "No Topic"
                         val newsDate = newsSnapshot.child("newsDateTime").getValue(String::class.java) ?: "No Date"
                         val newsContent = newsSnapshot.child("newsContent").getValue(String::class.java) ?: "No Content"
                         val newsImage = newsSnapshot.child("imageUrl").getValue(String::class.java) ?: ""
+
+                        Log.d("DashboardActivity", "date: $newsDate")
+                        Log.d("DashboardActivity", "newsID: $newsID")
+                        Log.d("DashboardActivity", "newsTopic: $newsTitle")
 
                         val newsTextView = TextView(this@DashboardActivity).apply {
                             text = "$newsTitle\n$newsDate"
