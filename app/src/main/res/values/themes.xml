@@ -5,6 +5,11 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
+    <!-- Splash Screen Theme -->
+    <style name="Theme.SplashScreen" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/reporter_logo</item>
+    </style>
+
     <style name="Theme.Test_MAD" parent="Base.Theme.Test_MAD" />
     <style name="roundedImageRounded">
         <item name="cornerFamily">rounded</item>

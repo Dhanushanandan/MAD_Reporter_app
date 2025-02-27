@@ -69,17 +69,17 @@
                 android:textSize="15sp" />
 
             <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/approvel_news"
+                android:id="@+id/reason_news"
                 style="@android:style/Widget.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="50dp"
                 android:background="@drawable/btn_background"
-                android:text="Aprovel"
+                android:text="Reasons"
                 android:textColor="@color/white"
                 android:textSize="15sp"
-                android:visibility="invisible"
-                tools:visibility="invisible" />
+                android:visibility="visible"
+                tools:visibility="visible" />
 
         </LinearLayout>
     </ScrollView>

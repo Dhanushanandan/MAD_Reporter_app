@@ -20,6 +20,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.bumptech.glide.Glide
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -187,6 +188,8 @@ class DashboardActivity : AppCompatActivity() {
                         setPadding(16, 16, 16, 16)
                         gravity = Gravity.START
                         setTextColor(Color.WHITE)
+
+
                     }
 
                     // Set click listener to open NewsDetailActivity
@@ -198,6 +201,7 @@ class DashboardActivity : AppCompatActivity() {
                         intent.putExtra("newsImage", newsImage)
                         startActivity(intent)
                     }
+
 
                     // Add the TextView to the container
                     newsContainer.addView(newsTextView)

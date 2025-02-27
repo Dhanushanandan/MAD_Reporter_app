@@ -12,14 +12,22 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Test_MAD"
         tools:targetApi="31">
+
         <activity
-            android:name=".MainActivity"
+            android:name=".SplashActivity"
+            android:theme="@style/Theme.SplashScreen"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+
         </activity>
 
         <activity android:name=".LoginActivity" android:exported="true"></activity>
@@ -37,6 +45,9 @@
         <activity android:name=".ReporterUpdatePostActivity" android:exported="true"></activity>
         <activity android:name=".ReporterNewNewsPost" android:exported="true"/>
         <activity android:name=".Admin_Aprovel_NewsActivity" android:exported="true"/>
+        <activity android:name=".RejectNewDetailActivity" android:exported="true"/>
+        <activity android:name=".UpdateNewsdetailsActivity" android:exported="true"/>
+        <activity android:name=".NewsReasonViewActivity" android:exported="true"/>
 
 
 

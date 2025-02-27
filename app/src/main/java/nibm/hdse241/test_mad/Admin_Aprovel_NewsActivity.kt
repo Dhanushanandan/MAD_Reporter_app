@@ -177,6 +177,9 @@ class Admin_Aprovel_NewsActivity : AppCompatActivity() {
                 databaseRef.updateChildren(updateMap).addOnCompleteListener { task ->
                     val message = if (task.isSuccessful) "News updated successfully" else "Failed to update news"
                     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, RejectNewDetailActivity::class.java)
+                    intent.putExtra("newsId", newsId)
+                    startActivity(intent)
                 }
             } else {
                 Toast.makeText(this, "News ID does not exist", Toast.LENGTH_SHORT).show()
@@ -205,6 +208,9 @@ class Admin_Aprovel_NewsActivity : AppCompatActivity() {
                 databaseRef.updateChildren(updateMap).addOnCompleteListener { task ->
                     val message = if (task.isSuccessful) "News updated successfully" else "Failed to update news"
                     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, UpdateNewsdetailsActivity::class.java)
+                    intent.putExtra("newsId", newsId)
+                    startActivity(intent)
                 }
             } else {
                 Toast.makeText(this, "News ID does not exist", Toast.LENGTH_SHORT).show()

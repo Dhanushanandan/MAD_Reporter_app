@@ -97,6 +97,13 @@ class AdminPostActivity : AppCompatActivity() {
 
 
 
+
+        }
+        val reason_news: Button = findViewById(R.id.reason_news)
+
+        reason_news.setOnClickListener {
+            val intent = Intent(this, NewsReasonViewActivity::class.java)
+            startActivity(intent)
         }
 
 
