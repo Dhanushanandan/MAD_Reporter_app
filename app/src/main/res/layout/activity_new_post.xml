@@ -48,7 +48,7 @@
             <ImageView
                 android:id="@+id/iv_news_image"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="100dp"
                 android:layout_marginTop="10dp"
                 android:background="@android:color/white"
                 android:contentDescription="News Image"
@@ -69,7 +69,7 @@
             <EditText
                 android:id="@+id/et_news_content"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="70dp"
                 android:layout_marginTop="10dp"
                 android:backgroundTint="@color/white"
                 android:gravity="top"
@@ -120,6 +120,16 @@
                 android:layout_marginTop="20dp"
                 android:background="@drawable/btn_background"
                 android:text="Submit News"
+                android:textColor="@color/white"
+                android:textSize="15sp" />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/Draft_news"
+                style="@android:style/Widget.Button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/btn_background"
+                android:text="Draft News"
                 android:textColor="@color/white"
                 android:textSize="15sp" />
 

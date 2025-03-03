@@ -48,7 +48,7 @@
         <activity android:name=".RejectNewDetailActivity" android:exported="true"/>
         <activity android:name=".UpdateNewsdetailsActivity" android:exported="true"/>
         <activity android:name=".NewsReasonViewActivity" android:exported="true"/>
-
+        <activity android:name=".DraftNewsActivity" android:exported="true"/>
 
 
 

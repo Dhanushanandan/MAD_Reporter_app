@@ -11,6 +11,10 @@ import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import android.content.Context
+import java.io.File
+import java.io.FileOutputStream
+
 
 class NewNewsPost : AppCompatActivity() {
 
@@ -25,10 +29,12 @@ class NewNewsPost : AppCompatActivity() {
 
         val btnSubmitNews = findViewById<Button>(R.id.btn_submit_news)
         val btnSelectImage = findViewById<Button>(R.id.btn_upload_image)
+        val Draft_news = findViewById<Button>(R.id.Draft_news)
         imgPreview = findViewById(R.id.iv_news_image)
 
         btnSelectImage.setOnClickListener { selectImageFromGallery() }
         btnSubmitNews.setOnClickListener { validateAndUploadNews() }
+        Draft_news.setOnClickListener { saveNewsAsFile() }
     }
 
     private fun selectImageFromGallery() {
@@ -119,6 +125,55 @@ class NewNewsPost : AppCompatActivity() {
         findViewById<EditText>(R.id.Date).text.clear()
         imgPreview.setImageResource(0) // Remove preview image
     }
+
+    private fun saveNewsAsFile() {
+        try {
+            // Retrieve values directly from input fields
+            val newsId = findViewById<EditText>(R.id.et_news_id).text.toString().trim()
+            val newsTopic = findViewById<EditText>(R.id.et_news_topic).text.toString().trim()
+            val newsContent = findViewById<EditText>(R.id.et_news_content).text.toString().trim()
+            val newsLocation = findViewById<EditText>(R.id.et_news_location).text.toString().trim()
+            val newsDate = findViewById<EditText>(R.id.Date).text.toString().trim()
+            val newsCategory = findViewById<Spinner>(R.id.spinner_news_category).selectedItem.toString()
+            val imageUriString = imageUri?.toString() ?: ""
+
+            // Validate required fields
+            if (newsId.isEmpty() || newsTopic.isEmpty() || newsContent.isEmpty() ||
+                newsLocation.isEmpty() || newsDate.isEmpty()) {
+                Toast.makeText(this, "Please fill all fields before saving", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Create a JSON object
+            val newsJson = JSONObject().apply {
+                put("newsId", newsId)
+                put("newsTopic", newsTopic)
+                put("newsContent", newsContent)
+                put("newsLocation", newsLocation)
+                put("newsDate", newsDate)
+                put("newsCategory", newsCategory)
+                put("imageUri", imageUriString)
+            }
+
+            // Convert JSON object to string
+            val newsString = newsJson.toString()
+
+            // Use newsId as the file name
+            val fileName = "$newsId.json"
+
+            // Save the file in internal storage
+            val fos: FileOutputStream = openFileOutput(fileName, Context.MODE_PRIVATE)
+            fos.write(newsString.toByteArray())
+            fos.close()
+
+            Toast.makeText(this, "Draft saved successfully as $fileName!", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Error saving draft", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
 
     data class NewsPost(
         val newsId: String,
